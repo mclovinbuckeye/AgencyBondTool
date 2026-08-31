@@ -537,6 +537,47 @@ def match_agency(address: str, agencies):
 
     return candidates[0][1], f"Conservative fuzzy address match; score {candidates[0][0]:.1f}"
 
+
+def match_agency_by_bond_number(pdf_bond_number: str, agencies, salesforce):
+    pdf_bond = normalize_bond_number(pdf_bond_number)
+
+    if not pdf_bond:
+        return None, "No bond number extracted."
+
+    matches = []
+
+    for agency_id, sfrow in salesforce.items():
+        sf_bond = normalize_bond_number(
+            normalize_spaces(sfrow.get("Bond_Number__c", ""))
+        )
+
+        if sf_bond and sf_bond == pdf_bond:
+            matches.append(agency_id)
+
+    if not matches:
+        return None, f"No Salesforce bond-number match for {pdf_bond}."
+
+    if len(matches) > 1:
+        return None, (
+            f"Ambiguous bond-number match; "
+            f"{len(matches)} Salesforce Accounts use {pdf_bond}."
+        )
+
+    matched_agency_id = matches[0]
+
+    for agency in agencies:
+        if agency["agency_id"] == matched_agency_id:
+            return (
+                agency,
+                f"Exact Salesforce bond-number match; {pdf_bond}"
+            )
+
+    return None, (
+        f"Bond number {pdf_bond} matched Salesforce Agency "
+        f"{matched_agency_id}, but that Agency ID was not found "
+        f"in Agency Admin.csv."
+    )
+
 def match_agency_by_name(pdf_business: str, agencies, salesforce):
     pdf_legal_name, pdf_dba = split_business_name(pdf_business)
 
@@ -954,30 +995,49 @@ def main():
             else:
                 address_detail = detail
 
-                name_agency, name_detail = match_agency_by_name(
-                    fields["Business Name"],
+                bond_agency, bond_detail = match_agency_by_bond_number(
+                    fields["Bond Number"],
                     agencies,
                     salesforce,
                 )
 
-                if name_agency:
-                    agency = name_agency
+                if bond_agency:
+                    agency = bond_agency
                     detail = (
                         f"Address match failed: {address_detail} "
-                        f"Name fallback succeeded: {name_detail}"
+                        f"Bond-number fallback succeeded: {bond_detail}"
                     )
-                    match_method = "Name Fallback"
+                    match_method = "Bond Number - Exact Salesforce"
                     match_confidence = "High"
                     address_match = "No"
 
                 else:
-                    detail = (
-                        f"Address match failed: {address_detail} "
-                        f"Name fallback failed: {name_detail}"
+                    name_agency, name_detail = match_agency_by_name(
+                        fields["Business Name"],
+                        agencies,
+                        salesforce,
                     )
-                    match_method = "No Match"
-                    match_confidence = "None"
-                    address_match = "No"
+
+                    if name_agency:
+                        agency = name_agency
+                        detail = (
+                            f"Address match failed: {address_detail} "
+                            f"Bond-number fallback failed: {bond_detail} "
+                            f"Name fallback succeeded: {name_detail}"
+                        )
+                        match_method = "Name Fallback"
+                        match_confidence = "High"
+                        address_match = "No"
+
+                    else:
+                        detail = (
+                            f"Address match failed: {address_detail} "
+                            f"Bond-number fallback failed: {bond_detail} "
+                            f"Name fallback failed: {name_detail}"
+                        )
+                        match_method = "No Match"
+                        match_confidence = "None"
+                        address_match = "No"
 
             agency_id = agency["agency_id"] if agency else ""
             sfrow = salesforce.get(agency_id) if agency_id else None
