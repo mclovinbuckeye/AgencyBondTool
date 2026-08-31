@@ -1,0 +1,12 @@
+{
+  "tesseract_path": "C:\\Program Files\\Tesseract-OCR\\tesseract.exe",
+  "salesforce": {
+    "enabled": false,
+    "my_domain_url": "https://YOUR-MY-DOMAIN.my.salesforce.com",
+    "consumer_key": "PASTE_CONSUMER_KEY_HERE",
+    "api_version": "67.0",
+    "callback_port": 7171,
+    "upload_files": true,
+    "update_account_fields": false
+  }
+}

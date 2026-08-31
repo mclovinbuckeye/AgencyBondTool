@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local configuration / secrets
+config.json
+
+# Real input/output data
+input/
+processed/
+unmatched/
+output/
+
+# Reference data
+reference/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
