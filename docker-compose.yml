@@ -1,0 +1,13 @@
+services:
+  bond-tool:
+    image: bond-renewal-tool:dev
+
+    volumes:
+      - ./input:/app/input
+      - ./processed:/app/processed
+      - ./unmatched:/app/unmatched
+      - ./output:/app/output
+      - ./reference:/app/reference
+      - ./config.json:/app/config.json:ro
+
+    command: ["python", "bond_processor.py", "process"]

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import re
 import shutil
 import sys
@@ -87,7 +88,8 @@ def load_config():
 
 def configure_tesseract(cfg):
     custom = cfg.get("tesseract_path")
-    if custom:
+
+    if custom and os.path.exists(custom):
         pytesseract.pytesseract.tesseract_cmd = custom
 
 

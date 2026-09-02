@@ -1,0 +1,27 @@
+# Git
+.git
+.gitignore
+
+# Python
+.venv
+__pycache__
+*.pyc
+*.pyo
+
+# Local configuration / secrets
+config.json
+
+# Runtime data
+input
+processed
+unmatched
+output
+reference
+
+# Windows / editor files
+.vscode
+Thumbs.db
+.DS_Store
+
+# PowerShell helpers aren't needed inside Linux image
+*.ps1
