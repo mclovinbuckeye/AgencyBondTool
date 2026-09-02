@@ -135,10 +135,20 @@ def normalize_ocr_date(date_text: str) -> str:
         return date_text
 
     month, day, year = m.groups()
-    month_num = int(month)
 
-    if month_num > 12 and month == "16":
+    # OCR sometimes reads the month "10" as "16" or "18".
+    if month in {"16", "18"}:
         month = "10"
+
+    # OCR sometimes reads the day "01" as "61" or "81".
+    if day in {"61", "81"}:
+        day = "01"
+
+    # Narrow year repairs observed in these continuation forms.
+    if year == "2826":
+        year = "2026"
+    elif year == "2827":
+        year = "2027"
 
     return f"{month}/{day}/{year}"
 
@@ -163,7 +173,7 @@ def normalize_bond_number(bond_no: str) -> str:
 
     # Unknown format: preserve the extracted value rather than guessing.
     return bond_no
-    
+
 def normalize_bond_amount(amount_text: str) -> str:
     amount_text = normalize_spaces(amount_text)
 
@@ -171,10 +181,10 @@ def normalize_bond_amount(amount_text: str) -> str:
         return ""
 
     # Known Erie OCR error:
-    # $100,080 -> $100,000
+    # OCR may read the final "000" as "080".
     amount_text = re.sub(
-        r"\$?\s*100,080\b",
-        "$100,000",
+        r"\$?\s*(75|100),\s*080\b",
+        lambda m: f"${m.group(1)},000",
         amount_text,
     )
 
@@ -185,9 +195,10 @@ def normalize_bond_amount(amount_text: str) -> str:
         amount_text,
     )
 
-    # Remove spaces OCR may insert inside the number.
+    # Remove spaces OCR may insert inside the number,
+    # including after a thousands separator.
     amount_text = re.sub(
-        r"(?<=\d)\s+(?=\d)",
+        r"(?<=[\d,])\s+(?=\d)",
         "",
         amount_text,
     )
@@ -373,7 +384,7 @@ def extract_fields(text: str) -> dict:
 
     m = re.search(
         r"(?:Bond\s*Amount|Penalty|Penal\s*Sum)[^\n$]{0,40}"
-        r"(\$?\s*[\d,]+(?:\s*[eE@]\s*\d+)?(?:\.\d{2})?)",
+        r"(\$?\s*[\d,]+(?:\s+\d{3})*(?:\s*[eE@]\s*\d+)?(?:\.\d{2})?)",
         joined,
         flags=re.I,
     )
