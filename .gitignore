@@ -2,6 +2,7 @@
 .venv/
 __pycache__/
 *.pyc
+.env
 
 # Local configuration / secrets
 config.json

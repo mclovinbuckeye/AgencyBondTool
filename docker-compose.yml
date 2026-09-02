@@ -2,6 +2,9 @@ services:
   bond-tool:
     image: bond-renewal-tool:dev
 
+    env_file:
+      - .env
+
     volumes:
       - ./input:/app/input
       - ./processed:/app/processed

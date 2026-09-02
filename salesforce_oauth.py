@@ -19,6 +19,16 @@ import requests
 SERVICE_NAME = "BondRenewalTool/Salesforce"
 REFRESH_TOKEN_KEY = "refresh_token"
 
+def get_saved_refresh_token():
+    env_token = os.getenv("SALESFORCE_REFRESH_TOKEN")
+
+    if env_token:
+        return env_token
+
+    return keyring.get_password(
+        SERVICE_NAME,
+        REFRESH_TOKEN_KEY,
+    )
 
 def _b64url(raw: bytes) -> str:
     return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
@@ -144,7 +154,7 @@ def interactive_login(sf: dict) -> dict:
 
 
 def refresh_login(sf: dict) -> dict | None:
-    refresh_token = keyring.get_password(SERVICE_NAME, REFRESH_TOKEN_KEY)
+    refresh_token = get_saved_refresh_token()
     if not refresh_token:
         return None
 
@@ -162,6 +172,16 @@ def refresh_login(sf: dict) -> dict | None:
         return None
     return response.json()
 
+def get_saved_refresh_token():
+    env_token = os.getenv("SALESFORCE_REFRESH_TOKEN")
+
+    if env_token:
+        return env_token
+
+    return keyring.get_password(
+        SERVICE_NAME,
+        REFRESH_TOKEN_KEY,
+    )
 
 def get_access_token(sf: dict, force_interactive: bool = False) -> dict:
     if not force_interactive:
