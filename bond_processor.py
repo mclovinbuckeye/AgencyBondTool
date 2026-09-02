@@ -188,6 +188,14 @@ def normalize_bond_amount(amount_text: str) -> str:
         amount_text,
     )
 
+    # Known Erie OCR error:
+    # OCR may drop one zero from "$75,000" and read "$75, 00".
+    amount_text = re.sub(
+        r"\$?\s*75,\s*00\b",
+        "$75,000",
+        amount_text,
+)
+
     # Known OCR mistakes inside numeric bond amounts.
     amount_text = re.sub(
         r"(?<=[\d,])\s*[eE@]\s*(?=\d)",
@@ -214,6 +222,7 @@ def normalize_bond_amount(amount_text: str) -> str:
     value = m.group(1).split(".")[0]
 
     return "$" + value
+
 
 def normalize_business_name(s: str) -> str:
     s = (s or "").upper()
@@ -387,7 +396,7 @@ def extract_fields(text: str) -> dict:
 
     m = re.search(
         r"(?:Bond\s*Amount|Penalty|Penal\s*Sum)[^\n$]{0,40}"
-        r"(\$?\s*[\d,]+(?:\s+\d{3})*(?:\s*[eE@]\s*\d+)?(?:\.\d{2})?)",
+        r"(\$?\s*[\d,]+(?:\s+\d{2,3})*(?:\s*[eE@]\s*\d+)?(?:\.\d{2})?)",
         joined,
         flags=re.I,
     )
