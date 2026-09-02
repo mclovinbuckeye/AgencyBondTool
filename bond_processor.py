@@ -478,14 +478,6 @@ def extract_fields(text: str) -> dict:
 
             block.append(line)
 
-        print("\n--- PRINCIPAL BLOCK DEBUG ---")
-        print("start_idx:", start_idx)
-
-        for i, item in enumerate(block):
-            print(f"block[{i}]: {repr(item)}")
-
-        print("--- END PRINCIPAL BLOCK DEBUG ---\n")
-
         street_words = r"(?:ST|STREET|RD|ROAD|AVE|AVENUE|BLVD|BOULEVARD|DR|DRIVE|LN|LANE|CT|COURT|HWY|HIGHWAY|PKWY|PARKWAY|RTE|ROUTE)"
 
         street_idx = None
