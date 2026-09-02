@@ -365,6 +365,9 @@ def extract_fields(text: str) -> dict:
     lines = [normalize_spaces(x) for x in text.splitlines() if normalize_spaces(x)]
     joined = "\n".join(lines)
 
+    lines = [normalize_spaces(x) for x in text.splitlines() if normalize_spaces(x)]
+    joined = "\n".join(lines)
+
     # Bond number
     bond_no = ""
     patterns = [
@@ -455,6 +458,18 @@ def extract_fields(text: str) -> dict:
         )
 
         for line in lines[start_idx:start_idx + 12]:
+
+            # OCR may append the next section heading to the principal street line.
+            line = re.split(
+                r"\bCONTINUATION\s+EFFECTIVE\s+DATE\b",
+                line,
+                maxsplit=1,
+                flags=re.I,
+            )[0].strip()
+
+            if not line:
+                break
+
             if any(sw.lower() in line.lower() for sw in stop_words):
                 break
 
@@ -462,6 +477,14 @@ def extract_fields(text: str) -> dict:
                 continue
 
             block.append(line)
+
+        print("\n--- PRINCIPAL BLOCK DEBUG ---")
+        print("start_idx:", start_idx)
+
+        for i, item in enumerate(block):
+            print(f"block[{i}]: {repr(item)}")
+
+        print("--- END PRINCIPAL BLOCK DEBUG ---\n")
 
         street_words = r"(?:ST|STREET|RD|ROAD|AVE|AVENUE|BLVD|BOULEVARD|DR|DRIVE|LN|LANE|CT|COURT|HWY|HIGHWAY|PKWY|PARKWAY|RTE|ROUTE)"
 
@@ -488,21 +511,47 @@ def extract_fields(text: str) -> dict:
                 break
 
 
-        if street_idx is not None:
+    if street_idx is not None:
+        business = normalize_spaces(" ".join(block[:street_idx]))
+        address = block[street_idx]
 
 
-            business = normalize_spaces(" ".join(block[:street_idx]))
-            address = block[street_idx]
+    # Fallback principal address.
+    # Search ONLY within the principal block so we never capture
+    # the obligee address later in the document.
+    if not address and start_idx is not None:
 
+        fallback_street_idx = None
 
-    # Fallback street address: first street-looking line.
-    if not address:
-        street_words = r"(?:ST|STREET|RD|ROAD|AVE|AVENUE|BLVD|BOULEVARD|DR|DRIVE|LN|LANE|CT|COURT|HWY|HIGHWAY|PKWY|PARKWAY|RTE|ROUTE)"
-
-        for line in lines:
-            if re.search(rf"^\d+[A-Z]?\s+.+\b{street_words}\b", line, re.I):
-                address = line
+        # First try a normal street-suffix pattern.
+        for i, line in enumerate(block):
+            if re.search(
+                rf"^\d+[A-Z]?\s+.+\b{street_words}\b",
+                line,
+                re.I,
+            ):
+                fallback_street_idx = i
                 break
+
+        # Some valid addresses have no street suffix,
+        # such as "221 GOLDEN GATE".
+        if fallback_street_idx is None:
+            for i, line in enumerate(block):
+                if (
+                    re.match(r"^\d+[A-Z]?\s+\S+", line)
+                    and not re.search(
+                        r"\b[A-Z]{2}\s+\d{5}(?:-\d{4})?$",
+                        line,
+                    )
+                ):
+                    fallback_street_idx = i
+                    break
+
+        if fallback_street_idx is not None:
+            business = normalize_spaces(
+                " ".join(block[:fallback_street_idx])
+            )
+            address = block[fallback_street_idx]
 
 
 
