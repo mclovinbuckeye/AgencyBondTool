@@ -12,5 +12,9 @@ services:
       - ./output:/app/output
       - ./reference:/app/reference
       - ./config.json:/app/config.json:ro
+      - ./secrets:/app/secrets
 
     command: ["python", "bond_processor.py", "process"]
+
+    environment:
+      SALESFORCE_REFRESH_TOKEN_FILE: /app/secrets/salesforce_refresh_token.txt

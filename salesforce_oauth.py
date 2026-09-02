@@ -170,7 +170,14 @@ def refresh_login(sf: dict) -> dict | None:
     )
     if response.status_code >= 400:
         return None
-    return response.json()
+
+    token_data = response.json()
+
+    replacement_refresh_token = token_data.get("refresh_token")
+    if replacement_refresh_token:
+        save_refresh_token(replacement_refresh_token)
+
+        return token_data
 
 def get_saved_refresh_token():
     env_token = os.getenv("SALESFORCE_REFRESH_TOKEN")
@@ -181,6 +188,42 @@ def get_saved_refresh_token():
     return keyring.get_password(
         SERVICE_NAME,
         REFRESH_TOKEN_KEY,
+    )
+
+def get_saved_refresh_token():
+    token_file = os.getenv("SALESFORCE_REFRESH_TOKEN_FILE")
+
+    if token_file and os.path.exists(token_file):
+        token = Path(token_file).read_text(encoding="utf-8").strip()
+        if token:
+            return token
+
+    env_token = os.getenv("SALESFORCE_REFRESH_TOKEN")
+    if env_token:
+        return env_token
+
+    return keyring.get_password(
+        SERVICE_NAME,
+        REFRESH_TOKEN_KEY,
+    )
+
+
+def save_refresh_token(refresh_token):
+    if not refresh_token:
+        return
+
+    token_file = os.getenv("SALESFORCE_REFRESH_TOKEN_FILE")
+
+    if token_file:
+        path = Path(token_file)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(refresh_token, encoding="utf-8")
+        return
+
+    keyring.set_password(
+        SERVICE_NAME,
+        REFRESH_TOKEN_KEY,
+        refresh_token,
     )
 
 def get_access_token(sf: dict, force_interactive: bool = False) -> dict:
