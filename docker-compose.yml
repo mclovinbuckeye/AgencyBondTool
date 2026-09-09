@@ -1,9 +1,6 @@
 services:
   bond-tool:
-    image: bond-renewal-tool:dev
-
-    env_file:
-      - .env
+    image: agency-bond-tool:v1.2.0
 
     volumes:
       - ./input:/app/input
