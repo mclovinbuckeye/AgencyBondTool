@@ -234,3 +234,13 @@ CSV output uses plain UTF-8 without a BOM, so the Data Loader `Title` header sta
 | **1 — Process Only**    | ✅            | ✅             | ❌          | ❌                |
 | **2 — Upload Files**    | ✅            | ✅             | ✅          | ❌                |
 | **3 — Full Automation** | ✅            | ✅             | ✅          | ✅                |
+
+
+Push changes:
+Git branch --show-current = confirm you are in the right place
+git status = show changes you made
+git diff *file name you are changing*  q to exit
+git add *file you want to add
+git commit -m 'text about the change'
+git push origin *current branch* from git branch
+git status = no commits
