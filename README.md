@@ -97,42 +97,23 @@ FULL AUTOMATION requires you to type `YES` before processing starts.
 
 You can also skip the menu:
 
-```powershell
+```Docker Run
 # Local processing only
-.\.venv\Scripts\python.exe .\bond_processor.py process
+docker compose run --rm bond-tool python bond_processor.py process
 
 # Process + upload PDFs
-.\.venv\Scripts\python.exe .\bond_processor.py upload
+docker compose run --rm bond-tool python bond_processor.py upload
 
 # Process + upload PDFs + update bond fields
-.\.venv\Scripts\python.exe .\bond_processor.py full
+docker compose run --rm bond-tool python bond_processor.py full
 ```
+When you make changes to Docker you need to rebuild it.
 
-`full` still asks for `YES`.
+docker build -t agency-bond-tool:v1.2.0 .
 
-For a future trusted unattended/scheduled job only:
-
-```powershell
-.\.venv\Scripts\python.exe .\bond_processor.py full --yes
-```
-
-Do not use `--yes` until you are comfortable with the extraction and matching results over real batches.
-
-## PowerShell wrapper
-
-`run.ps1` forwards command-line arguments, so after unblocking it you can use:
-
-```powershell
-Unblock-File .\run.ps1
-Unblock-File .\salesforce-login.ps1
-
-.\run.ps1
-.\run.ps1 process
-.\run.ps1 upload
-.\run.ps1 full
-```
-
-If your PowerShell policy still blocks scripts, use the direct Python commands above.
+verify the image: docker images
+verify compose config: docker compose config
+Verify it is available: docker compose config --services = bond-tool
 
 ## Salesforce configuration
 
